@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 import telebot
+from telebot import types
 from dotenv import load_dotenv
 from my_openai import *
 import logging
@@ -23,8 +24,10 @@ bot = telebot.TeleBot(BOT_TOKEN)
 openai.api_key = AI_TOKEN
 
 conversations = defaultdict(list)
+dialogs = defaultdict(bool)
 
 logging.warning(f'Starting application')
+
 
 def blocked(message):
     if str(message.from_user.id) in BLOCK_LIST:
@@ -64,6 +67,35 @@ def command_message(message):
     bot.send_message(message.chat.id, text='Контекст очищен')
 
 
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    if call.data == "start_dialog":
+        bot.answer_callback_query(call.id, "Диалог начат")
+        start_dialog(call.message)
+    elif call.data == "end_dialog":
+        bot.answer_callback_query(call.id, "Диалог завершен")
+        end_dialog(call.message)
+
+
+def start_dialog(message):
+    logging.warning(f'Starting dialog  {message.from_user.first_name} {message.from_user.id}')
+    key = f'{message.chat.type}|{message.chat.id}'
+    dialogs[key] = True
+
+    keyboard = get_keyboard(True)
+    bot.reply_to(message, text='Диалог начат. Теперь бот будет запоминать сообщения', reply_markup=keyboard)
+
+
+def end_dialog(message):
+    logging.warning(f'Ending dialog  {message.from_user.first_name} {message.from_user.id}')
+    key = f'{message.chat.type}|{message.chat.id}'
+    del conversations[key]
+    del dialogs[key]
+
+    keyboard = get_keyboard(False)
+    bot.reply_to(message, text='Диалог завершен', reply_markup=keyboard)
+
+
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     logging.warning(f'Private message from {message.from_user.first_name} {message.from_user.id}')
@@ -73,23 +105,42 @@ def echo_all(message):
     respond(message)
 
 
-def combine_prompts(id, type, text, role):
-    key = f'{type}|{id}'
+def combine_prompts(key, text, role):
     conversations[key].append({'role': f'{role}', 'content': f'{text}'})
     return conversations[key]
 
 
 def respond(message):
-    prompts = combine_prompts(message.chat.id, message.chat.type, message.text, 'user')
+    key = f'{message.chat.type}|{message.chat.id}'
+
+    dialog = dialogs[key]
+    keyboard = get_keyboard(dialog)
+
+    if dialog:
+        prompts = combine_prompts(key, message.text, 'user')
+    else:
+        prompts = [{'role': 'user', 'content': message.text}]
 
     response = make_request(prompts, AI_TOKEN)
     if response == MAX_LENGTH_ERR_MSG:
-        key = f'{message.chat.type}|{message.chat.id}'
         del conversations[key]
+        del dialogs[key]
         bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.')
     else:
-        combine_prompts(message.chat.id, message.chat.type, response, 'assistant')
-        bot.reply_to(message, text=response)
+        if dialog:
+            combine_prompts(key, response, 'assistant')
+        bot.reply_to(message, text=response, reply_markup=keyboard)
+
+
+def get_keyboard(dialog):
+    keyboard = types.InlineKeyboardMarkup()
+    if dialog:
+        button_end_dialog = types.InlineKeyboardButton('Завершить диалог', callback_data='end_dialog')
+        keyboard.add(button_end_dialog)
+    else:
+        button_start_dialog = types.InlineKeyboardButton('Начать диалог', callback_data='start_dialog')
+        keyboard.add(button_start_dialog)
+    return keyboard
 
 
 if __name__ == "__main__":
