@@ -89,8 +89,11 @@ def start_dialog(message):
 def end_dialog(message):
     logging.warning(f'Ending dialog  {message.from_user.first_name} {message.from_user.id}')
     key = f'{message.chat.type}|{message.chat.id}'
-    del conversations[key]
-    del dialogs[key]
+
+    if key in conversations:
+        del conversations[key]
+    if key in dialogs:
+        del dialogs[key]
 
     keyboard = get_keyboard(False)
     bot.reply_to(message, text='Диалог завершен', reply_markup=keyboard)
@@ -123,8 +126,10 @@ def respond(message):
 
     response = make_request(prompts, AI_TOKEN)
     if response == MAX_LENGTH_ERR_MSG:
-        del conversations[key]
-        del dialogs[key]
+        if key in conversations:
+            del conversations[key]
+        if key in dialogs:
+            del dialogs[key]
         bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.')
     else:
         if dialog:
