@@ -63,10 +63,7 @@ def command_message(message):
         return
 
     key = f'{message.chat.type}|{message.chat.id}'
-    if key in conversations:
-        del conversations[key]
-    if key in dialogs:
-        del dialogs[key]
+    clean_user_state(key)
 
     bot.send_message(message.chat.id, text='Контекст очищен')
 
@@ -93,11 +90,7 @@ def start_dialog(message):
 def end_dialog(message):
     logging.warning(f'Ending dialog  {message.from_user.first_name} {message.from_user.id}')
     key = f'{message.chat.type}|{message.chat.id}'
-
-    if key in conversations:
-        del conversations[key]
-    if key in dialogs:
-        del dialogs[key]
+    clean_user_state(key)
 
     keyboard = get_keyboard(False)
     bot.reply_to(message, text='Диалог завершен', reply_markup=keyboard)
@@ -128,17 +121,23 @@ def respond(message):
     else:
         prompts = [{'role': 'user', 'content': message.text}]
 
+    bot.send_message(message.chat.id, text='Запрос отправлен')
     response = make_request(prompts, AI_TOKEN)
+
     if response == MAX_LENGTH_ERR_MSG:
-        if key in conversations:
-            del conversations[key]
-        if key in dialogs:
-            del dialogs[key]
-        bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.')
+        clean_user_state(key)
+        bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.', reply_markup=get_keyboard(False))
     else:
         if dialog:
             combine_prompts(key, response, 'assistant')
         bot.reply_to(message, text=response, reply_markup=keyboard)
+
+
+def clean_user_state(key):
+    if key in conversations:
+        del conversations[key]
+    if key in dialogs:
+        del dialogs[key]
 
 
 def get_keyboard(dialog):
