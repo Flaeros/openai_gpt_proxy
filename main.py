@@ -63,7 +63,11 @@ def command_message(message):
         return
 
     key = f'{message.chat.type}|{message.chat.id}'
-    del conversations[key]
+    if key in conversations:
+        del conversations[key]
+    if key in dialogs:
+        del dialogs[key]
+
     bot.send_message(message.chat.id, text='Контекст очищен')
 
 
