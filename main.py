@@ -17,19 +17,16 @@ conversations = defaultdict(list)
 
 @bot.message_handler(commands=['bot'])
 def command_message(message):
-    print('bot')
     respond(message)
 
 
 @bot.message_handler(commands=['help'])
 def command_message(message):
-    print('help')
     bot.send_message(message.chat.id, text='/bot или реплай задать вопрос. /clear очистить контекст')
 
 
 @bot.message_handler(commands=['clean', 'clear'])
 def command_message(message):
-    print('clean')
     key = f'{message.chat.type}|{message.chat.id}'
     del conversations[key]
     bot.send_message(message.chat.id, text='Контекст очищен')
@@ -37,7 +34,6 @@ def command_message(message):
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-    print('other')
     respond(message)
 
 
@@ -48,7 +44,6 @@ def combine_prompts(id, type, text, role):
 
 
 def respond(message):
-    print(message.text)
     prompts = combine_prompts(message.chat.id, message.chat.type, message.text, 'user')
 
     response = make_request(prompts, AI_TOKEN)
