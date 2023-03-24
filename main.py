@@ -83,8 +83,13 @@ def respond(message):
     prompts = combine_prompts(message.chat.id, message.chat.type, message.text, 'user')
 
     response = make_request(prompts, AI_TOKEN)
-    combine_prompts(message.chat.id, message.chat.type, response, 'assistant')
-    bot.reply_to(message, text=response)
+    if response == MAX_LENGTH_ERR_MSG:
+        key = f'{message.chat.type}|{message.chat.id}'
+        del conversations[key]
+        bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.')
+    else:
+        combine_prompts(message.chat.id, message.chat.type, response, 'assistant')
+        bot.reply_to(message, text=response)
 
 
 if __name__ == "__main__":

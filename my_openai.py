@@ -22,10 +22,10 @@ def make_request(messages, api_key):
         else:
             make_request(messages, api_key)
     except RateLimitError:
-        return [RATE_LIMIT_ERR_MSG]
+        return RATE_LIMIT_ERR_MSG
 
     except ReadTimeout:
-        return [RATE_LIMIT_ERR_MSG]
+        return RATE_LIMIT_ERR_MSG
 
     except InvalidRequestError:
-        return [MAX_LENGTH_ERR_MSG]
+        return MAX_LENGTH_ERR_MSG
