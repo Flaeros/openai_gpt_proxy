@@ -14,7 +14,6 @@ def make_request(messages, api_key):
             model=model,
             messages=messages,
             temperature=0.2,
-            max_tokens=3100,
         )
         answer = completion.choices[0]['message']['content']
         if answer:
