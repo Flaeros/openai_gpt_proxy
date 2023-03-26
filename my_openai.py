@@ -12,8 +12,7 @@ def make_request(messages, api_key):
         model = "gpt-3.5-turbo"
         completion = openai.ChatCompletion.create(
             model=model,
-            messages=messages,
-            temperature=0.2,
+            messages=messages
         )
         answer = completion.choices[0]['message']['content']
         if answer:
