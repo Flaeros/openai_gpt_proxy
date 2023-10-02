@@ -19,6 +19,10 @@ load_dotenv(os.path.join(BASEDIR, 'tokens.env'))
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 AI_TOKEN = os.getenv("CHAT_GPT_API_KEY")
 BLOCK_LIST = os.getenv("BLOCK_LIST")
+WHITE_LIST = os.getenv("WHITE_LIST")
+
+model3 = "gpt-3.5-turbo"
+model4 = "gpt-4"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 openai.api_key = AI_TOKEN
@@ -121,8 +125,11 @@ def respond(message):
     else:
         prompts = [{'role': 'user', 'content': message.text}]
 
+    model = model4 if str(message.from_user.id) in WHITE_LIST else model3
+    logging.warning(f"model={model}")
+
     bot.send_message(message.chat.id, text='Запрос отправлен')
-    response = make_request(prompts, AI_TOKEN)
+    response = make_request(prompts, AI_TOKEN, model)
 
     if response == MAX_LENGTH_ERR_MSG:
         clean_user_state(key)

@@ -7,9 +7,8 @@ MAX_LENGTH_ERR_MSG = "Максимальная длина контекста с�
 RATE_LIMIT_ERR_MSG = "ChatGPT в данный момент перегружен запросами, пожалуйста повторите свой запрос чуть позже."
 
 
-def make_request(messages, api_key):
+def make_request(messages, api_key, model):
     try:
-        model = "gpt-3.5-turbo"
         completion = openai.ChatCompletion.create(
             model=model,
             messages=messages
@@ -18,7 +17,7 @@ def make_request(messages, api_key):
         if answer:
             return answer
         else:
-            make_request(messages, api_key)
+            make_request(messages, api_key, model)
     except RateLimitError:
         return RATE_LIMIT_ERR_MSG
 
