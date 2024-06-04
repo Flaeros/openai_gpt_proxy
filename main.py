@@ -5,6 +5,7 @@ from telebot import types
 from dotenv import load_dotenv
 from my_openai import *
 import logging
+import scheduling
 
 logging.getLogger(__name__)
 logging.basicConfig(filename='log.log',
@@ -20,6 +21,7 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 AI_TOKEN = os.getenv("CHAT_GPT_API_KEY")
 BLOCK_LIST = os.getenv("BLOCK_LIST")
 WHITE_LIST = os.getenv("WHITE_LIST")
+CHAT_ID = os.getenv("CHAT_ID")
 
 model3 = "gpt-3.5-turbo"
 model4 = "gpt-4"
@@ -30,6 +32,8 @@ openai.api_key = AI_TOKEN
 
 conversations = defaultdict(list)
 dialogs = defaultdict(bool)
+
+scheduler = scheduling.start(bot, CHAT_ID)
 
 logging.warning(f'Starting application')
 

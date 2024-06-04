@@ -116,6 +116,7 @@ venv.bak/
 .env.dev
 .env.prod
 tokens.env
+scheduling.txt
 
 # Spyder project settings
 .spyderproject
