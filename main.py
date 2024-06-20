@@ -105,7 +105,18 @@ def end_dialog(message):
     bot.reply_to(message, text='Диалог завершен', reply_markup=keyboard)
 
 
-@bot.message_handler(func=lambda message: True)
+def test_general_handler(message):
+    if message.chat.type == "private":
+        return True
+
+    reply_msg = message.reply_to_message
+    if not reply_msg:
+        return False
+
+    return reply_msg.from_user.is_bot
+
+
+@bot.message_handler(func=test_general_handler)
 def echo_all(message):
     logging.warning(f'Private message from {message.from_user.first_name} {message.from_user.id}')
     if blocked(message):
@@ -138,7 +149,8 @@ def respond(message):
 
     if response == MAX_LENGTH_ERR_MSG:
         clean_user_state(key)
-        bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.', reply_markup=get_keyboard(False))
+        bot.reply_to(message, text='Ошибка, вероятно превышена длина контекста. Диалог завершен, можете начать новый.',
+                     reply_markup=get_keyboard(False))
     else:
         if dialog:
             combine_prompts(key, response, 'assistant')
