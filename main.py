@@ -41,7 +41,7 @@ logging.warning(f'Starting application')
 def blocked(message):
     if str(message.from_user.id) in BLOCK_LIST:
         logging.warning(f'Blocked user access {message.from_user.first_name} {message.from_user.id}')
-        bot.reply_to(message, text='Вы в черном списке')
+        bot.reply_to(message, text=u"\U0001F4A9")
         return True
 
     return False
