@@ -23,9 +23,8 @@ BLOCK_LIST = os.getenv("BLOCK_LIST")
 WHITE_LIST = os.getenv("WHITE_LIST")
 CHAT_ID = os.getenv("CHAT_ID")
 
-model3 = "gpt-3.5-turbo"
-model4 = "gpt-4"
-model4_fresh = "gpt-4-1106-preview"
+model_cheap = "gpt-4o-mini"
+model_top = "gpt-4o"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 openai.api_key = AI_TOKEN
@@ -141,7 +140,7 @@ def respond(message):
     else:
         prompts = [{'role': 'user', 'content': message.text}]
 
-    model = model4_fresh if str(message.from_user.id) in WHITE_LIST else model3
+    model = model_top if str(message.from_user.id) in WHITE_LIST else model_cheap
     logging.warning(f"model={model}")
 
     bot.send_message(message.chat.id, text='Запрос отправлен')
